@@ -1,3 +1,14 @@
+<view class="slider-container">
+  <swiper indicator-dots="{{indicatordots}}" indicator-active-color="{{color}}" autoplay="{{autoplay}}"
+    interval="{{interval}}" duration="{{duration}}" style="height:{{height}}">
+    <block wx:for="{{img}}" wx:key="">
+      <swiper-item>
+        <image src="{{item}}" style="width: {{imageWidth}}px;height:{{height}}" class="slider-item" bindload='goheight'>
+        </image>
+      </swiper-item>
+    </block>
+  </swiper>
+</view>
 <view class="cu-bar bg-darkGray search">
   <view class=" search-form  round " bindtap="goSearch">
     <text class="cuIcon-search text-green"></text>
@@ -5,10 +16,18 @@
   </view>
 </view>
 <view class='ai-view'>
-  <text class='txt'>或</text>
-  <image src='/images/paizhao.png' class='ai-paizhao' bindtap='onBindCamera' />
-  <text class='tip'>自动识别</text>
-
+  <view class="ai-view-item ai-view-item-1">
+    <image src='/images/voice.png' class='ai-img' bindtap='onBindCamera' />
+    <text class='txt'>语音识别</text>
+  </view>
+  <view class="ai-view-item ai-view-item-2" bindtap='onBindCamera'>
+    <image src='/images/camera.png' class='ai-img'/>
+    <text class='txt'>拍照识别</text>
+  </view>
+  <view class="ai-view-item ai-view-item-3" bindtap='getPhoto'>
+    <image src='/images/photo.png' class='ai-img'/>
+    <text class='txt'>图片识别</text>
+  </view>
 </view>
 <view class="box" wx:if="{{SHOW_TOP}}">
   <view class='arrow'></view>
@@ -23,8 +42,8 @@
     <text class="q-tx">智能询问</text>
   </view>
 </view> -->
-<view class="kefu-box">
+<!-- <view class="kefu-box">
   <view class="kefu-body" bindtap="onAikefu">
     <text class="q-tx">打赏开发者</text>
   </view>
-</view> 
+</view>  -->

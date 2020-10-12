@@ -1,9 +1,38 @@
 Page({
-
   data: {
     SHOW_TOP: true,
+    img: [
+      '/images/slider-2.jpg',
+      '/images/slider-1.jpg',
+      '/images/slider-3.jpg'
+    ],
+    imageWidth: wx.getSystemInfoSync().windowWidth,//图片宽度   
+    indicatordots:true,
+    // autoplay:true,
+    //是否自动切换
+    interval: 2000,
+    //自动切换时间间隔
+    duration: 1000,
+    //滑动动画时长
+    // color:'#ffffff',
+    //当前选中的指示点颜色
+    height:''
+    //swiper高度
   },
-
+  goheight:function (e) {
+    var width = wx.getSystemInfoSync().windowWidth
+    //获取可使用窗口宽度
+    var imgheight = e.detail.height
+    //获取图片实际高度
+    var imgwidth = e.detail.width
+    //获取图片实际宽度
+    var height = (width * imgheight / imgwidth - 60) +"px"
+    //计算等比swiper高度
+    this.setData({
+      height: height
+    })
+    console.log(height,imgheight)
+  },
   onLoad: function(options) {
     console.log("AAAAAAAAA")
     var myDate = new Date();
@@ -30,6 +59,22 @@ Page({
   onBindCamera: function() {
     wx.navigateTo({
       url: 'camera/camera',
+    })
+  },
+  onBindPhoto: function() {
+    wx.navigateTo({
+      url: 'photo/photo',
+    })
+  },
+  getPhoto() {
+    wx.chooseImage({
+      count: 1, // 默认9
+      sizeType: ['original', 'compressed'], // 可以指定是原图还是压缩图，默认二者都有
+      sourceType: ['album', 'camera'], // 可以指定来源是相册还是相机，默认二者都有
+      success: function (res) {
+        // 返回选定照片的本地文件路径列表，tempFilePath可以作为img标签的src属性显示图片
+        var tempFilePaths = res.tempFilePaths
+      }
     })
   },
   onAikefu: function() {

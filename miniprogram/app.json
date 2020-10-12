@@ -2,6 +2,7 @@
   "pages": [
     "pages/ai/index",
     "pages/ai/camera/camera",
+    "pages/ai/photo/photo",
     "pages/ai/search",
     "pages/ai/filter/filter",
     "pages/android/qa",
@@ -15,7 +16,7 @@
     "backgroundColor": "#F6F6F6",
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#00cc77",
-    "navigationBarTitleText": "智能垃圾分类",
+    "navigationBarTitleText": "垃圾识别",
     "navigationBarTextStyle": "white"
   },
   "tabBar": {
