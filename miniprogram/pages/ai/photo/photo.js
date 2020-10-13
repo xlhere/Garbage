@@ -6,9 +6,8 @@ Page({
     accessToken: "",
     isShow: false,
     results: [],
-    src: "",
-    isCamera: true,
-    btnTxt: "拍照",
+    imagePath: "",
+    btnTxt: "使用",
     cWidth: 0,
     cHeight: 0
   },
@@ -18,7 +17,6 @@ Page({
     var curTime = new Date().getTime()
     var timeInt = parseInt(time)
     var timeNum = parseInt((curTime - timeInt) / (1000 * 60 * 60 * 24))
-    console.log("=======" + timeNum)
     var accessToken = wx.getStorageSync("access_token")
     console.log("====accessToken===" + accessToken + "a")
     if (timeNum > 28 || (accessToken == "" ||
@@ -26,52 +24,18 @@ Page({
       this.accessTokenFunc()
     } else {
       this.setData({
-        accessToken: wx.getStorageSync("access_token")
+        accessToken: wx.getStorageSync("access_token"),
+        // imagePath: option.imagePath
+        imagePath: wx.getStorageSync('imagePath')
       })
     }
   },
   takePhoto() {
-    var that = this
-    if (this.data.isCamera == false) {
-      this.setData({
-        isCamera: true,
-        btnTxt: "拍照"
-      })
-      return
-    }
-    this.ctx.takePhoto({
-      quality: 'low',
-      success: (res) => {
-        that.setData({
-          src: res.tempImagePath,
-          isCamera: false,
-          btnTxt: "重拍"
-        })
-        wx.showLoading({
-          title: '正在加载中',
-        })
-        var index = res.tempImagePath.lastIndexOf(".")
-        console.log("===index===" + index)
-        var mineType = res.tempImagePath.substr(index + 1)
-        console.log("===mineType===" + mineType)
-        mineType = "image/" + mineType
-        wx.getImageInfo({
-          src: res.tempImagePath,
-          success: function (res) {
-            that.cutImg(res)
-          }
-        })
-      }
-    })
-  },
-  getPhoto() {
-    wx.chooseImage({
-      count: 1, // 默认9
-      sizeType: ['original', 'compressed'], // 可以指定是原图还是压缩图，默认二者都有
-      sourceType: ['album', 'camera'], // 可以指定来源是相册还是相机，默认二者都有
+    let that = this
+    wx.getImageInfo({
+      src: that.data.imagePath,
       success: function (res) {
-        // 返回选定照片的本地文件路径列表，tempFilePath可以作为img标签的src属性显示图片
-        var tempFilePaths = res.tempFilePaths
+        that.cutImg(res)
       }
     })
   },

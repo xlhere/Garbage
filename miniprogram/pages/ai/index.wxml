@@ -16,10 +16,10 @@
   </view>
 </view>
 <view class='ai-view'>
-  <view class="ai-view-item ai-view-item-1">
+  <!-- <view class="ai-view-item ai-view-item-1">
     <image src='/images/voice.png' class='ai-img' bindtap='onBindCamera' />
     <text class='txt'>语音识别</text>
-  </view>
+  </view> -->
   <view class="ai-view-item ai-view-item-2" bindtap='onBindCamera'>
     <image src='/images/camera.png' class='ai-img'/>
     <text class='txt'>拍照识别</text>

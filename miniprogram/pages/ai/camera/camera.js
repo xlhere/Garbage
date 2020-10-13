@@ -49,10 +49,9 @@ Page({
         wx.showLoading({
           title: '正在加载中',
         })
+        console.log('🌹',res)
         var index = res.tempImagePath.lastIndexOf(".")
-        console.log("===index===" + index)
         var mineType = res.tempImagePath.substr(index + 1)
-        console.log("===mineType===" + mineType)
         mineType = "image/" + mineType
         wx.getImageInfo({
           src: res.tempImagePath,
@@ -180,7 +179,6 @@ Page({
     wx.cloud.callFunction({
       name: 'baiduAccessToken',
       success: res => {
-        console.log("==baiduAccessToken==" + JSON.stringify(res))
         that.data.accessToken = res.result.data.access_token
         wx.setStorageSync("access_token", res.result.data.access_token)
         wx.setStorageSync("time", new Date().getTime())
