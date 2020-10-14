@@ -1,10 +1,29 @@
-<view style="width: 100%; height:calc(100vh - 200rpx);">
-  <image style="width: 100%; height:100%;" mode="scaleToFill" src="{{imagePath}}"></image>
+<view style="width: 100%; height:calc(100vh - 200rpx);position:relative;">
+  <image style="width:{{imgWidth}}px;height:{{imgHeight}}px;top:{{imgTop}}px;left:{{imgLeft}}px;position:absolute;" mode="scaleToFill" src="{{imagePath}}"></image>
+  <view wx:if="{{isCroper}}" class="cropper-wraper">
+    <view class="corpper-view-box" bindtouchstart="croperStart" bindtouchmove="croperMove"
+      style="width:{{cutW}}px;height:{{cutH}}px;left:{{cutL}}px;top:{{cutT}}px">
+      <view class="cropper-dashed-h"></view>
+      <view class="cropper-dashed-v"></view>
+      <view class="cropper-line-t" data-drag="top"></view>
+      <view class="cropper-line-r" data-drag="right"></view>
+      <view class="cropper-line-b" data-drag="bottom"></view>
+      <view class="cropper-line-l" data-drag="left"></view>
+      <view class="cropper-point point-tr" data-drag="topTight"></view>
+      <view class="cropper-point point-rb" data-drag="rightBottom" catchtouchstart="dragPointStart"
+        catchtouchmove="dragPointMove"></view>
+      <view class="cropper-point point-bl" data-drag="bottomLeft"></view>
+      <view class="cropper-point point-lt" data-drag="leftTop"></view>
+    </view>
+  </view>
   <canvas canvas-id="canvas"
     style="width:{{cWidth}}px;height:{{cHeight}}px;position: absolute;left:-1000px;top:-1000px;"></canvas>
+  <canvas canvas-id="tempCanvas" disable-scroll="true"
+    style="width:{{tempCanvasWidth}}px; height:{{tempCanvasHeight}}px; position:absolute;left:-999999px"></canvas>
 </view>
 
 <view class='photo-view'>
+  <view class='takePhoto' bindtap="openCroper">裁剪框</view>
   <view class='takePhoto' bindtap="takePhoto">{{btnTxt}}</view>
 </view>
 
@@ -21,4 +40,12 @@
       </view>
     </radio-group>
   </view>
+</view>
+
+<!-- 裁剪和添加文字时调出的确认条 -->
+<view class="confirm-bar1" wx:if="{{isCroper}}">
+  <text class="icon-cross" bindtap="{{'cancelCrop'}}"></text>
+</view>
+<view class="confirm-bar2" wx:if="{{isCroper}}">
+  <text class="icon-checkmark" bindtap="{{'competeCrop'}}"></text>
 </view>

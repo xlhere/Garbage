@@ -1,6 +1,7 @@
 var md5 = require('../../../utils/md5.js')
 var http = require('../../../utils/http.js')
 var util = require('../../../utils/util.js')
+const app = getApp();
 Page({
   data: {
     accessToken: "",
@@ -9,7 +10,20 @@ Page({
     imagePath: "",
     btnTxt: "使用",
     cWidth: 0,
-    cHeight: 0
+    cHeight: 0,
+    isCroper:false,
+    imgWidth:0,
+    imgHeight:0,
+    imgTop:0,
+    imgLeft:0,
+    isCroper:false,
+    // 裁剪框 宽高
+    cutW: 0,
+    cutH: 0,
+    cutL: 0,
+    cutT: 0,
+    tempCanvasWidth:0,
+    tempCanvasHeight:0
   },
   onLoad() {
     this.ctx = wx.createCameraContext()
@@ -18,7 +32,13 @@ Page({
     var timeInt = parseInt(time)
     var timeNum = parseInt((curTime - timeInt) / (1000 * 60 * 60 * 24))
     var accessToken = wx.getStorageSync("access_token")
-    console.log("====accessToken===" + accessToken + "a")
+    this.device = app.globalData.myDevice
+    this.deviceRatio = this.device.windowWidth / 750
+    this.imgViewHeight = this.device.windowHeight - 160 * this.deviceRatio
+    this.setData({
+      imagePath: wx.getStorageSync('imagePath')
+    })
+    loadImgOnImage(this)
     if (timeNum > 28 || (accessToken == "" ||
         accessToken == null || accessToken == undefined)) {
       this.accessTokenFunc()
@@ -26,7 +46,7 @@ Page({
       this.setData({
         accessToken: wx.getStorageSync("access_token"),
         // imagePath: option.imagePath
-        imagePath: wx.getStorageSync('imagePath')
+        // imagePath: wx.getStorageSync('imagePath')
       })
     }
   },
@@ -194,6 +214,151 @@ Page({
   },
   error(e) {
     console.log(e.detail)
-  }
-
+  },
+  openCroper(){
+    var minCutL = Math.max(0, this.data.imgLeft)
+    var minCutT = Math.max(0, this.data.imgTop)
+    this.setData({
+      isCroper:true,
+      cutW: 150,
+      cutH: 100,
+      cutL: minCutL,
+      cutT: minCutT
+    })
+  },
+  croperStart(e){
+    this.croperX = e.touches[0].clientX
+    this.croperY = e.touches[0].clientY
+  },
+  croperMove(e){
+    var self = this
+    var dragLengthX = (e.touches[0].clientX-self.croperX)
+    var dragLengthY = (e.touches[0].clientY-self.croperY)
+    var minCutL = Math.max(0,self.data.imgLeft)
+    var minCutT = Math.max(0, self.data.imgTop)
+    var maxCutL = Math.min(750 * self.deviceRatio - self.data.cutW, self.data.imgLeft + self.data.imgWidth - self.data.cutW)
+    var maxCutT = Math.min(self.imgViewHeight - self.data.cutH, self.data.imgTop + self.data.imgHeight - self.data.cutH)
+    var newCutL = self.data.cutL + dragLengthX
+    var newCutT = self.data.cutT + dragLengthY
+    if (newCutL < minCutL) newCutL = minCutL
+    if (newCutL > maxCutL) newCutL = maxCutL
+    if (newCutT < minCutT) newCutT = minCutT
+    if (newCutT > maxCutT) newCutT = maxCutT
+    this.setData({
+      cutL: newCutL,
+      cutT: newCutT,
+    })
+    self.croperX = e.touches[0].clientX
+    self.croperY = e.touches[0].clientY
+  },
+  dragPointStart(e){
+    var self = this
+    self.dragStartX = e.touches[0].clientX
+    self.dragStartY = e.touches[0].clientY
+    self.initDragCutW = self.data.cutW
+    self.initDragCutH = self.data.cutH
+  },
+  dragPointMove(e){
+    var self = this
+    var maxDragX = Math.min(750 * self.deviceRatio, self.data.imgLeft + self.data.imgWidth)
+    var maxDragY = Math.min(self.imgViewHeight, self.data.imgTop + self.data.imgHeight)
+    var dragMoveX = Math.min(e.touches[0].clientX , maxDragX),
+      dragMoveY = Math.min(e.touches[0].clientY, maxDragY);
+    var dragLengthX = dragMoveX - self.dragStartX
+    var dragLengthY = dragMoveY - self.dragStartY
+    if (dragLengthX + self.initDragCutW >= 0 && dragLengthY + self.initDragCutH>=0){
+      self.setData({
+        cutW: self.initDragCutW + dragLengthX,
+        cutH: self.initDragCutH + dragLengthY
+      })
+    } else {
+      return
+    }
+  },
+  competeCrop(){
+    var self=this
+    wx.showLoading({
+      title: '截取中',
+      mask: true,
+    })
+    //图片截取大小
+    var sX = (self.data.cutL - self.data.imgLeft) * self.initRatio / self.oldScale
+    var sY = (self.data.cutT - self.data.imgTop) * self.initRatio / self.oldScale
+    var sW = self.data.cutW * self.initRatio /self.oldScale
+    var sH = self.data.cutH * self.initRatio / self.oldScale
+    self.setData({
+      isCroper: false,
+      tempCanvasWidth: sW,
+      tempCanvasHeight: sH
+    })
+    //真机疑似bug解决方法
+    if (sW < self.scaleWidth * self.initRatio/ self.oldScale / 2) {
+      sW *= 2
+      sH *= 2
+    }
+    var ctx = wx.createCanvasContext('tempCanvas')
+    ctx.drawImage(self.data.imagePath, sX, sY, sW, sH, 0, 0, sW, sH)
+    ctx.draw()
+    //保存图片到临时路径
+    saveImgUseTempCanvas(self, 100, loadImgOnImage)
+  },
+  cancelCrop(){
+    this.setData({
+      isCroper: false
+    })
+  },
 })
+function loadImgOnImage(self){
+  wx.getImageInfo({
+    src: self.data.imagePath,
+    success: function (res) {
+      self.oldScale = 1
+      self.initRatio = res.height / self.imgViewHeight  //转换为了px 图片原始大小/显示大小
+      if (self.initRatio < res.width / (750 * self.deviceRatio)) {
+        self.initRatio = res.width / (750 * self.deviceRatio)
+      }
+      //图片显示大小
+      self.scaleWidth = (res.width / self.initRatio)
+      self.scaleHeight = (res.height / self.initRatio)
+
+      self.initScaleWidth = self.scaleWidth
+      self.initScaleHeight = self.scaleHeight
+      self.startX = 750 * self.deviceRatio / 2 - self.scaleWidth / 2;
+      self.startY = self.imgViewHeight / 2 - self.scaleHeight / 2;
+      self.setData({
+        imgWidth: self.scaleWidth,
+        imgHeight: self.scaleHeight,
+        imgTop: self.startY,
+        imgLeft: self.startX
+      })
+      wx.hideLoading();
+    }
+  })
+}
+function saveImgUseTempCanvas(self, delay, fn){
+  setTimeout(function () {
+    wx.canvasToTempFilePath({
+      x:0,
+      y:0,
+      width: self.data.tempCanvasWidth,
+      height: self.data.tempCanvasHeight,
+      destWidth: self.data.tempCanvasWidth,
+      destHeight: self.data.tempCanvasHeight,
+      fileType: 'png',
+      quality: 1,
+      canvasId: 'tempCanvas',
+      success: function (res) {
+        wx.hideLoading();
+        self.setData({
+          imagePath: res.tempFilePath
+        })
+        if(fn){
+          fn(self) 
+        }
+      },
+      fail:function(res){
+        console.log(1,res)
+      }
+    })
+  }, delay)
+}
